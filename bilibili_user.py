@@ -2,7 +2,7 @@
 
 import requests
 import json
-import MySQLdb
+import mysql.connector as mariadb
 from multiprocessing.dummy import Pool as ThreadPool
 import sys
 import datetime
@@ -31,7 +31,8 @@ head = {
 }
 
 time1 = time.time()
-for i in range(873981, 873982):
+# 873982
+for i in range(2, 200000):
     url = 'http://space.bilibili.com/ajax/member/GetInfo?mid=' + str(i)
     urls.append(url)
 
@@ -59,36 +60,43 @@ def getsource(url):
     jsDict = json.loads(jscontent)
     if jsDict['status'] == True:
         jsData = jsDict['data']
-        mid = jsData['mid']
-        name = jsData['name']
-        sex = jsData['sex']
-        face = jsData['face']
-        coins = jsData['coins']
-        regtime = jsData['regtime']
-        spacesta = jsData['spacesta']
-        birthday = jsData['birthday']
-        place = jsData['place']
-        description = jsData['description']
+
+        approve = jsData['approve']
         article = jsData['article']
+        attention = jsData['attention']
+        attentions = jsData['attentions']
+        birthday = jsData['birthday']
+        coins = jsData['coins']
+        description = jsData['description']
+        exp = jsData['level_info']['current_exp']
+        face = jsData['face']
         fans = jsData['fans']
         friend = jsData['friend']
-        attention = jsData['attention']
-        sign = jsData['sign']
-        attentions = jsData['attentions']
+        im9_sign = jsData['im9_sign']
         level = jsData['level_info']['current_level']
-        exp = jsData['level_info']['current_exp']
+        mid = jsData['mid']
+        name = jsData['name']
+        official_verify = jsData['official_verify']['type']
+        place = jsData['place']
+        playNum = jsData['playNum']
+        rank = jsData['rank']
+        regtime = jsData['regtime']
+        sex = jsData['sex']
+        sign = jsData['sign']
+        spacesta = jsData['spacesta']
+
 
         regtime_format = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(regtime))
         print "Succeed: " + mid + "\t" + str(time2 - time1)
         try:
-            conn = MySQLdb.connect(host='localhost', user='root', passwd='', port=3306, charset='utf8')
+            conn = mariadb.connect(host='localhost', user='root', password='', database='bilibili', port=3306, charset='utf8')
             cur = conn.cursor()
             # cur.execute('create database if not exists python')
-            conn.select_db('python')
-            cur.execute('INSERT INTO bilibili_user_info VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            cur.execute('INSERT INTO bilibili_user_info VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                         [mid, mid, name, sex, face, coins, regtime_format, spacesta, birthday, place, description,
-                         article, fans, friend, attention, sign, str(attentions), level, exp])
-        except MySQLdb.Error, e:
+                         article, fans, friend, attention, sign, str(attentions), level, exp, approve, im9_sign,
+                         official_verify, playNum, rank])
+        except mariadb.Error, e:
             print "Mysql Error %d: %s" % (e.args[0], e.args[1])
     else:
         print "Error: " + url
